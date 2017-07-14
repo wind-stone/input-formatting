@@ -1,0 +1,23 @@
+{
+  "name": "input-formatting",
+  "version": "1.0.2",
+  "description": "移动端格式化输入，如将手机号格式化为\"185 6666 8888\"",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wind-stone/input-formatting.git"
+  },
+  "keywords": [
+    "input",
+    "formatting"
+  ],
+  "author": "wind-stone",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wind-stone/input-formatting/issues"
+  },
+  "homepage": "https://github.com/wind-stone/input-formatting#readme"
+}
