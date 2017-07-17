@@ -4,7 +4,8 @@
   "description": "移动端格式化输入，如将手机号格式化为\"185 6666 8888\"，可将光标移动到任何地方进行删除、输入操作。",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c"
   },
   "repository": {
     "type": "git",
@@ -19,5 +20,12 @@
   "bugs": {
     "url": "https://github.com/wind-stone/input-formatting/issues"
   },
-  "homepage": "https://github.com/wind-stone/input-formatting#readme"
+  "homepage": "https://github.com/wind-stone/input-formatting#readme",
+  "devDependencies": {
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-preset-latest": "^6.24.1",
+    "rollup": "^0.45.2",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-node-resolve": "^3.0.0"
+  }
 }

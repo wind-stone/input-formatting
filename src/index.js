@@ -9,7 +9,7 @@
   *                                        /\s+/    （手机号）
   *                                        /[.-]/   （巴西 CPF）
   */
-export default class FormatInput {
+export default class InputFormatting {
   constructor(input, options) {
     this.input = input
     this.options = options
