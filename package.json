@@ -1,7 +1,7 @@
 {
   "name": "input-formatting",
-  "version": "1.0.5",
-  "description": "移动端格式化输入，如将手机号格式化为\"185 6666 8888\"，可将光标移动到任何地方进行删除、输入操作。",
+  "version": "1.0.7",
+  "description": "移动端格式化输入，如将手机号格式化为\"185-6666-8888\"，可将光标移动到任何地方进行删除、输入操作。",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

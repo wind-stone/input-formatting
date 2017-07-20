@@ -1,3 +1,4 @@
 .bin/
 .DS_Store
 node_modules/
+src/index.html

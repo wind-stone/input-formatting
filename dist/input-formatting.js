@@ -32,16 +32,16 @@ var createClass = function () {
   * 格式化输入
   * @param {HTMLInputElement} input 输入框dom节点
   * @param {Object} options
-  *           {String} formatString  最终产生的格式，形如：
-  *                                  '*** **** ****' （手机号，空格分隔）
-  *                                  '***-****-****' （手机号，- 连线分隔）
-  *                                  '***.***.***-**'（巴西 CPF）
-  *           {RegExp} separatorReg  匹配分隔符的正则表达式，形如：
+  *           {String} formatString    最终产生的格式，形如：
+  *                                      '*** **** ****' （手机号，空格分隔）
+  *                                      '***-****-****' （手机号，- 连线分隔）
+  *                                      '***.***.***-**'（巴西 CPF）
+  *           {RegExp} separatorReg    匹配分隔符的正则表达式，形如：
   *                                        /\s+/g    （手机号，空格分隔）
   *                                        /-/g      （手机号，- 连线分隔）
   *                                        /[.-]/g   （巴西 CPF）
-  *           {Function} hook        格式化输入之前的钩子函数，接收 输入值（去除了分隔符）为参数，钩子函数返回
-  *                                  true 则继续进行格式化，返回 false 则终止格式化
+  *           {Function} beforeFormat  格式化输入之前的钩子函数，接收 输入值（去除了分隔符）为参数，钩子函数返回
+  *                                    true 则继续进行格式化，返回 false 则终止格式化
   */
 var InputFormatting = function () {
   function InputFormatting(input, options) {
@@ -62,7 +62,7 @@ var InputFormatting = function () {
 
       var formatString = options.formatString; // 格式化字符串
       var separatorReg = options.separatorReg; // 清除分隔符的正则
-      var hook = options.hook; // 钩子函数
+      var beforeFormat = options.beforeFormat; // 钩子函数
 
       var separatorIndexArray = []; // 存放格式化字符串里分隔符的下标
       var formatArray = formatString.split(''); // 将格式化字符串分割成格式化数组
@@ -91,12 +91,12 @@ var InputFormatting = function () {
           isBadAndroid = inputLength !== selectionStart;
         }
 
-        // 处理 hook 函数
-        if (hook && typeof hook === 'function') {
+        // 处理 beforeFormat 钩子函数
+        if (beforeFormat && typeof beforeFormat === 'function') {
           var originValue = valueArray.join('');
-          var result = hook.call(_this, originValue);
+          var result = beforeFormat.call(_this, originValue);
 
-          // hook 函数返回 false，直接返回
+          // beforeFormat 函数返回 false，直接返回
           if (result === false) {
             return;
           }
