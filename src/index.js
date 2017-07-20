@@ -2,12 +2,16 @@
   * 格式化输入
   * @param {HTMLInputElement} input 输入框dom节点
   * @param {Object} options
-  *                   formatString  最终产生的格式，形如：
-  *                                        '*** **** ****' （手机号）
-  *                                        '***.***.***-**'（巴西 CPF）
-  *                   separatorReg  匹配分隔符的正则表达式，形如：
-  *                                        /\s+/    （手机号）
-  *                                        /[.-]/   （巴西 CPF）
+  *           {String} formatString  最终产生的格式，形如：
+  *                                  '*** **** ****' （手机号，空格分隔）
+  *                                  '***-****-****' （手机号，- 连线分隔）
+  *                                  '***.***.***-**'（巴西 CPF）
+  *           {RegExp} separatorReg  匹配分隔符的正则表达式，形如：
+  *                                        /\s+/g    （手机号，空格分隔）
+  *                                        /-/g      （手机号，- 连线分隔）
+  *                                        /[.-]/g   （巴西 CPF）
+  *           {Function} hook        格式化输入之前的钩子函数，接收 输入值（去除了分隔符）为参数，钩子函数返回
+  *                                  true 则继续进行格式化，返回 false 则终止格式化
   */
 export default class InputFormatting {
   constructor(input, options) {
@@ -19,8 +23,11 @@ export default class InputFormatting {
   addInputHandler() {
     const options = this.options
     const input = this.input
+
     const formatString = options.formatString   // 格式化字符串
-    const reg = options.separatorReg            // 清除分隔符的正则
+    const separatorReg = options.separatorReg   // 清除分隔符的正则
+    const hook = options.hook                   // 钩子函数
+
     const separatorIndexArray = []              // 存放格式化字符串里分隔符的下标
     const formatArray = formatString.split('')  // 将格式化字符串分割成格式化数组
     let lastInputLength = 0                     // 上次输入的长度，包含分隔符
@@ -29,7 +36,7 @@ export default class InputFormatting {
     input.maxLength = formatString.length       // 设置输入框的最大长度
 
     formatArray.forEach(function (item, index) {
-      if (reg.test(item)) {
+      if (separatorReg.test(item)) {
         separatorIndexArray.push({
           index: index,
           value: item
@@ -37,15 +44,26 @@ export default class InputFormatting {
       }
     })
 
-    this.inputHandler = function () {
+    this.inputHandler = () => {
       const inputLength = input.value.length
-      const isDeleted = lastInputLength > inputLength            // 是否是删除文字
-      const valueArray = input.value.replace(reg, '').split('')  // 去除后的数字数组
-      let selectionStart = input.selectionStart                  // 输入后的光标位置
+      const isDeleted = lastInputLength > inputLength                     // 是否是删除文字
+      const valueArray = input.value.replace(separatorReg, '').split('')  // 去除后的数字数组
+      let selectionStart = input.selectionStart                           // 输入后的光标位置
 
-      // 判断是否是有兼容性的 Android
+      // 判断是否是有兼容性问题的 Android
       if (isBadAndroid === undefined) {
         isBadAndroid = inputLength !== selectionStart
+      }
+
+      // 处理 hook 函数
+      if (hook && typeof hook === 'function') {
+        const originValue = valueArray.join('')
+        const result = hook.call(this, originValue)
+
+        // hook 函数返回 false，直接返回
+        if (result === false) {
+          return
+        }
       }
 
       separatorIndexArray.forEach(function (separatorObject, index) {
