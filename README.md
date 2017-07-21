@@ -2,6 +2,9 @@
 
 移动端格式化输入，如将手机号格式化为"185-6666-8888"，可将光标移动到任何地方进行删除、输入操作。
 
+## 演示
+
+![演示 gif](https://github.com/wind-stone/input-formatting/blob/master/example/input-formatting.gif?raw=true)
 
 ## 安装
 
