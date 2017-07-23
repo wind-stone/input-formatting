@@ -82,13 +82,22 @@ var InputFormatting = function () {
 
       this.inputHandler = function () {
         var inputLength = input.value.length;
-        var isDeleted = lastInputLength > inputLength; // 是否是删除文字
+        var isAdd = lastInputLength < inputLength; // 是否是添加字符
         var valueArray = input.value.replace(separatorReg, '').split(''); // 去除后的数字数组
         var selectionStart = input.selectionStart; // 输入后的光标位置
 
-        // 判断是否是有兼容性问题的 Android
+        /**
+         * 判断是否是有兼容性问题的 Android
+         *
+         * 问题描述：某些低版本 Android 上，input 事件里获取的 selectionStart 是输入之前的 selectionStart
+         */
         if (isBadAndroid === undefined) {
           isBadAndroid = inputLength !== selectionStart;
+        }
+
+        // 将有兼容性问题的 Android 处理成正常情况
+        if (isAdd && isBadAndroid) {
+          selectionStart++;
         }
 
         // 处理 beforeFormat 钩子函数
@@ -102,27 +111,22 @@ var InputFormatting = function () {
           }
         }
 
-        separatorIndexArray.forEach(function (separatorObject, index) {
-          if (inputLength <= separatorObject.index) {
+        separatorIndexArray.forEach(function (separatorObject) {
+          if (valueArray.length <= separatorObject.index) {
             return;
           }
+
           // 处理光标位置
-          if (isDeleted) {
-            // 如果是删除字符，且删除的是分隔符，则将分隔符前的数字一并删除，光标位置前移一位
+          if (isAdd) {
+            // 添加字符，且在是在分隔符的位置上添加，则光标后移一位（因为要插入分隔符）
+            if (selectionStart === separatorObject.index + 1) {
+              selectionStart++;
+            }
+          } else {
+            // 删除字符，且删除的是分隔符，则将分隔符前的数字一并删除，光标位置前移一位
             if (selectionStart === separatorObject.index) {
               valueArray.splice(separatorObject.index - 1, 1);
               selectionStart--;
-            }
-          } else {
-            // 如果是添加数字，且数字添加后要添加分隔符进行分隔，则（添加分隔符后）光标位置后移一位
-            var newIndex = separatorObject.index;
-
-            // 此处 Android 有兼容性问题，将无问题的 Android 和 iOS 统一处理成有兼容问题的 Android 形式，再统一处理
-            if (!isBadAndroid) {
-              newIndex++;
-            }
-            if (selectionStart === newIndex) {
-              selectionStart++;
             }
           }
 
@@ -135,15 +139,24 @@ var InputFormatting = function () {
         input.value = valueArray.join('');
         lastInputLength = valueArray.length;
 
-        // 有兼容性的Android && 增加字符
-        if (isBadAndroid && !isDeleted) {
-          selectionStart++;
+        // 增加字符 && 在中间区域输入(非末尾输入)
+        if (isAdd && selectionStart < input.value.length) {
+          separatorIndexArray.some(function (separatorObject) {
+            if (separatorObject.index === selectionStart) {
+              selectionStart++;
+              return true;
+            }
+          });
         }
 
-        // 异步处理，解决 Android 兼容问题
-        setTimeout(function () {
+        if (isBadAndroid) {
+          // 异步处理，有兼容性问题的 Android
+          setTimeout(function () {
+            input.setSelectionRange(selectionStart, selectionStart);
+          }, 0);
+        } else {
           input.setSelectionRange(selectionStart, selectionStart);
-        }, 0);
+        }
       };
 
       input.addEventListener('input', this.inputHandler, false);
