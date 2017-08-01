@@ -47,55 +47,118 @@ var InputFormatting = function () {
   function InputFormatting(input, options) {
     classCallCheck(this, InputFormatting);
 
-    this.input = input;
-    this.options = options;
+    this.initData(input, options);
     this.addInputHandler();
+    if (input.value) {
+      this.formatOnly();
+    }
   }
 
+  /**
+   * 初始化数据
+   */
+
+
   createClass(InputFormatting, [{
-    key: 'addInputHandler',
-    value: function addInputHandler() {
+    key: 'initData',
+    value: function initData(input, options) {
       var _this = this;
 
-      var options = this.options;
-      var input = this.input;
+      this.options = options;
+      this.input = input;
+      this.separatorIndexArray = []; // 存放格式化字符串里分隔符的下标
 
       var formatString = options.formatString; // 格式化字符串
       var separatorReg = options.separatorReg; // 清除分隔符的正则
-      var beforeFormat = options.beforeFormat; // 钩子函数
-
-      var separatorIndexArray = []; // 存放格式化字符串里分隔符的下标
       var formatArray = formatString.split(''); // 将格式化字符串分割成格式化数组
-      var lastInputLength = 0; // 上次输入的长度，包含分隔符
-      var isBadAndroid = void 0; // 有兼容性的 Android 机器
 
       input.maxLength = formatString.length; // 设置输入框的最大长度
 
       formatArray.forEach(function (item, index) {
         if (separatorReg.test(item)) {
-          separatorIndexArray.push({
+          _this.separatorIndexArray.push({
             index: index,
             value: item
           });
         }
       });
+    }
 
+    /**
+     * 仅格式化，不考虑光标移动
+     */
+
+  }, {
+    key: 'formatOnly',
+    value: function formatOnly() {
+      var _this2 = this;
+
+      var input = this.input;
+      var separatorReg = this.options.separatorReg; // 清除分隔符的正则
+      var valueArray = input.value.replace(separatorReg, '').split(''); // 去除分隔符后的数字数组
+      this.separatorIndexArray.forEach(function (separatorObject) {
+        if (valueArray.length <= separatorObject.index) {
+          return;
+        }
+        // 添加 分隔符
+        if (separatorObject.index < valueArray.length) {
+          valueArray.splice(separatorObject.index, 0, separatorObject.value);
+        }
+      });
+      // 异步设值，解决 vuejs 里 v-model 绑定问题
+      setTimeout(function () {
+        input.value = valueArray.join('');
+        _this2.lastInputLength = input.value.length;
+      });
+    }
+
+    /**
+     * 添加 input 处理函数
+     */
+
+  }, {
+    key: 'addInputHandler',
+    value: function addInputHandler() {
+      var _this3 = this;
+
+      var options = this.options;
+      var input = this.input;
+      var separatorReg = options.separatorReg; // 清除分隔符的正则
+      var beforeFormat = options.beforeFormat; // 钩子函数
+      this.lastInputLength = 0; // 上次输入的长度，包含分隔符
+      this.lastSelectionStart = 0; // 上次的鼠标位置
+      var isBadAndroid = void 0; // 有兼容性的 Android
+
+      /**
+       * 输入处理
+       */
       this.inputHandler = function () {
         var inputLength = input.value.length;
-        var isAdd = lastInputLength < inputLength; // 是否是添加字符
-        var valueArray = input.value.replace(separatorReg, '').split(''); // 去除后的数字数组
+        var isAdd = _this3.lastInputLength < inputLength; // 是否是添加字符
+        var valueArray = input.value.replace(separatorReg, '').split(''); // 去除分隔符后的数字数组
+        var separatorIndexArray = _this3.separatorIndexArray;
         var selectionStart = input.selectionStart; // 输入后的光标位置
 
         /**
-         * 判断是否是有兼容性问题的 Android
+         * 判断是否是有兼容性问题的 Android，并将有兼容性问题的 Android 处理成正常情况
          *
          * 问题描述：某些低版本 Android 上，input 事件里获取的 selectionStart 是输入之前的 selectionStart
          */
         if (isBadAndroid === undefined) {
-          isBadAndroid = inputLength !== selectionStart;
+          if (isAdd) {
+            // 判定是否有兼容性问题的 Android 的两种方式：
+            // 1、根据第一个输入判断：inputLength === 1 && selectionStart === 1
+            // 2、根据某次输入判断：lastSelectionStart === selectionStart
+            // 这两种方式不能覆盖所有的情况，但基本上满足绝大多数情况了
+            if (inputLength === 1 && selectionStart === 0 || _this3.lastSelectionStart === selectionStart) {
+              isBadAndroid = true;
+            } else {
+              isBadAndroid = false;
+            }
+          }
         }
 
-        // 将有兼容性问题的 Android 处理成正常情况
+        // 增加字符时，将 badAndroid 处理成正常情况
         if (isAdd && isBadAndroid) {
           selectionStart++;
         }
@@ -103,7 +166,7 @@ var InputFormatting = function () {
         // 处理 beforeFormat 钩子函数
         if (beforeFormat && typeof beforeFormat === 'function') {
           var originValue = valueArray.join('');
-          var result = beforeFormat.call(_this, originValue);
+          var result = beforeFormat.call(_this3, originValue);
 
           // beforeFormat 函数返回 false，直接返回
           if (result === false) {
@@ -111,6 +174,16 @@ var InputFormatting = function () {
           }
         }
 
+        // 如果增加超过两位，可认为是复制，仅进行格式化操作
+        if (inputLength - _this3.lastInputLength > 1) {
+          _this3.formatOnly();
+          var maxlength = +input.getAttribute('maxlength');
+          return setTimeout(function () {
+            input.setSelectionRange(maxlength, maxlength);
+          });
+        }
+
+        // 处理输入格式化及光标位置
         separatorIndexArray.forEach(function (separatorObject) {
           if (valueArray.length <= separatorObject.index) {
             return;
@@ -118,7 +191,7 @@ var InputFormatting = function () {
 
           // 处理光标位置
           if (isAdd) {
-            // 添加字符，且在是在分隔符的位置上添加，则光标后移一位（因为要插入分隔符）
+            // 添加字符，且是在分隔符的位置上添加，则光标后移一位（因为要插入分隔符）
             if (selectionStart === separatorObject.index + 1) {
               selectionStart++;
             }
@@ -137,7 +210,7 @@ var InputFormatting = function () {
         });
 
         input.value = valueArray.join('');
-        lastInputLength = valueArray.length;
+        _this3.lastInputLength = valueArray.length;
 
         // 增加字符 && 在中间区域输入(非末尾输入)
         if (isAdd && selectionStart < input.value.length) {
@@ -148,29 +221,33 @@ var InputFormatting = function () {
             }
           });
         }
-
-        if (isBadAndroid) {
-          // 异步处理，有兼容性问题的 Android
-          setTimeout(function () {
-            input.setSelectionRange(selectionStart, selectionStart);
-          }, 0);
-        } else {
+        _this3.lastSelectionStart = selectionStart;
+        setTimeout(function () {
           input.setSelectionRange(selectionStart, selectionStart);
-        }
+        });
       };
-
       input.addEventListener('input', this.inputHandler, false);
     }
+
+    /**
+     * 移除 inputHandler
+     */
+
   }, {
     key: 'removeInputHandler',
     value: function removeInputHandler() {
       this.inputHandler && this.input.removeEventListener('input', this.inputHandler);
     }
+
+    /**
+     * 重置 inputHandler
+     */
+
   }, {
     key: 'resetInputHandler',
     value: function resetInputHandler(options) {
-      this.options = options;
       this.input.value = '';
+      this.initData(this.input, options);
       this.removeInputHandler();
       this.addInputHandler();
     }
