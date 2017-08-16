@@ -72,12 +72,15 @@ separatorReg | 是 | RegExp | 匹配分隔符的正则表达式，比如 /-/g �
 beforeFormat | 否 | Function | 钩子函数，在进行输入格式化之前调用。钩子函数接收一个参数 originValue，该参数是去除分隔符后的原始输入。钩子函数的返回值决定是否继续进行格式化。如果返回 false，停止格式化操作；否则，继续格式化输入。beforeFormat 钩子里的 this 对象指向创建出来的 InputFormatting 的实例对象
 
 
-## 属性
+### 属性
 
-### input
+#### input
 new InputFormatting() 时传入的 HTMLInputElement 对象
 
-## 方法
+#### formattedValue
+格式化之后的值
+
+### 方法
 
 #### removeInputHandler()
 

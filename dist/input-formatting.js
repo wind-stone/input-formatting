@@ -62,21 +62,19 @@ var InputFormatting = function () {
   createClass(InputFormatting, [{
     key: 'initData',
     value: function initData(input, options) {
-      var _this = this;
-
       this.options = options;
       this.input = input;
-      this.separatorIndexArray = []; // 存放格式化字符串里分隔符的下标
 
       var formatString = options.formatString; // 格式化字符串
       var separatorReg = options.separatorReg; // 清除分隔符的正则
       var formatArray = formatString.split(''); // 将格式化字符串分割成格式化数组
+      var separatorIndexArray = this.separatorIndexArray = []; // 存放格式化字符串里分隔符的下标
 
       input.maxLength = formatString.length; // 设置输入框的最大长度
 
       formatArray.forEach(function (item, index) {
         if (separatorReg.test(item)) {
-          _this.separatorIndexArray.push({
+          separatorIndexArray.push({
             index: index,
             value: item
           });
@@ -91,7 +89,7 @@ var InputFormatting = function () {
   }, {
     key: 'formatOnly',
     value: function formatOnly() {
-      var _this2 = this;
+      var _this = this;
 
       var input = this.input;
       var separatorReg = this.options.separatorReg; // 清除分隔符的正则
@@ -105,10 +103,14 @@ var InputFormatting = function () {
           valueArray.splice(separatorObject.index, 0, separatorObject.value);
         }
       });
+
+      // 格式化后的值
+      this.formattedValue = valueArray.join('');
+
       // 异步设值，解决 vuejs 里 v-model 绑定问题
       setTimeout(function () {
-        input.value = valueArray.join('');
-        _this2.lastInputLength = input.value.length;
+        input.value = _this.formattedValue;
+        _this.lastInputLength = input.value.length;
       });
     }
 
@@ -119,7 +121,7 @@ var InputFormatting = function () {
   }, {
     key: 'addInputHandler',
     value: function addInputHandler() {
-      var _this3 = this;
+      var _this2 = this;
 
       var options = this.options;
       var input = this.input;
@@ -134,9 +136,9 @@ var InputFormatting = function () {
        */
       this.inputHandler = function () {
         var inputLength = input.value.length;
-        var isAdd = _this3.lastInputLength < inputLength; // 是否是添加字符
+        var isAdd = _this2.lastInputLength < inputLength; // 是否是添加字符
         var valueArray = input.value.replace(separatorReg, '').split(''); // 去除分隔符后的数字数组
-        var separatorIndexArray = _this3.separatorIndexArray;
+        var separatorIndexArray = _this2.separatorIndexArray;
         var selectionStart = input.selectionStart; // 输入后的光标位置
 
         /**
@@ -150,7 +152,7 @@ var InputFormatting = function () {
             // 1、根据第一个输入判断：inputLength === 1 && selectionStart === 1
             // 2、根据某次输入判断：lastSelectionStart === selectionStart
             // 这两种方式不能覆盖所有的情况，但基本上满足绝大多数情况了
-            if (inputLength === 1 && selectionStart === 0 || _this3.lastSelectionStart === selectionStart) {
+            if (inputLength === 1 && selectionStart === 0 || _this2.lastSelectionStart === selectionStart) {
               isBadAndroid = true;
             } else {
               isBadAndroid = false;
@@ -166,7 +168,7 @@ var InputFormatting = function () {
         // 处理 beforeFormat 钩子函数
         if (beforeFormat && typeof beforeFormat === 'function') {
           var originValue = valueArray.join('');
-          var result = beforeFormat.call(_this3, originValue);
+          var result = beforeFormat.call(_this2, originValue);
 
           // beforeFormat 函数返回 false，直接返回
           if (result === false) {
@@ -175,8 +177,8 @@ var InputFormatting = function () {
         }
 
         // 如果增加超过两位，可认为是复制，仅进行格式化操作
-        if (inputLength - _this3.lastInputLength > 1) {
-          _this3.formatOnly();
+        if (inputLength - _this2.lastInputLength > 1) {
+          _this2.formatOnly();
           var maxlength = +input.getAttribute('maxlength');
           return setTimeout(function () {
             input.setSelectionRange(maxlength, maxlength);
@@ -209,8 +211,8 @@ var InputFormatting = function () {
           }
         });
 
-        input.value = valueArray.join('');
-        _this3.lastInputLength = valueArray.length;
+        input.value = _this2.formattedValue = valueArray.join('');
+        _this2.lastInputLength = valueArray.length;
 
         // 增加字符 && 在中间区域输入(非末尾输入)
         if (isAdd && selectionStart < input.value.length) {
@@ -221,7 +223,7 @@ var InputFormatting = function () {
             }
           });
         }
-        _this3.lastSelectionStart = selectionStart;
+        _this2.lastSelectionStart = selectionStart;
         setTimeout(function () {
           input.setSelectionRange(selectionStart, selectionStart);
         });
@@ -246,7 +248,7 @@ var InputFormatting = function () {
   }, {
     key: 'resetInputHandler',
     value: function resetInputHandler(options) {
-      this.input.value = '';
+      this.input.value = this.formattedValue = '';
       this.initData(this.input, options);
       this.removeInputHandler();
       this.addInputHandler();

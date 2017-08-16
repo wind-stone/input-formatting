@@ -28,17 +28,17 @@ export default class InputFormatting {
   initData(input, options) {
     this.options = options
     this.input = input
-    this.separatorIndexArray = []               // 存放格式化字符串里分隔符的下标
 
     const formatString = options.formatString   // 格式化字符串
     const separatorReg = options.separatorReg   // 清除分隔符的正则
     const formatArray = formatString.split('')  // 将格式化字符串分割成格式化数组
+    const separatorIndexArray = this.separatorIndexArray = []  // 存放格式化字符串里分隔符的下标
 
     input.maxLength = formatString.length       // 设置输入框的最大长度
 
     formatArray.forEach((item, index) => {
       if (separatorReg.test(item)) {
-        this.separatorIndexArray.push({
+        separatorIndexArray.push({
           index: index,
           value: item
         })
@@ -62,9 +62,13 @@ export default class InputFormatting {
         valueArray.splice(separatorObject.index, 0, separatorObject.value)
       }
     })
+
+    // 格式化后的值
+    this.formattedValue = valueArray.join('')
+
     // 异步设值，解决 vuejs 里 v-model 绑定问题
     setTimeout(() => {
-      input.value = valueArray.join('')
+      input.value = this.formattedValue
       this.lastInputLength = input.value.length
     })
   }
@@ -161,7 +165,7 @@ export default class InputFormatting {
         }
       })
 
-      input.value = valueArray.join('')
+      input.value = this.formattedValue = valueArray.join('')
       this.lastInputLength = valueArray.length
 
       // 增加字符 && 在中间区域输入(非末尾输入)
@@ -192,7 +196,7 @@ export default class InputFormatting {
    * 重置 inputHandler
    */
   resetInputHandler(options) {
-    this.input.value = ''
+    this.input.value = this.formattedValue = ''
     this.initData(this.input, options)
     this.removeInputHandler()
     this.addInputHandler()
