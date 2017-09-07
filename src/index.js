@@ -13,12 +13,18 @@
   *           {Function} beforeFormat  格式化输入之前的钩子函数，接收 输入值（去除了分隔符）为参数，钩子函数返回
   *                                    true 则继续进行格式化，返回 false 则终止格式化
   */
+import { formatter } from './utils'
+
+export { formatter }
+
 export default class InputFormatting {
   constructor(input, options) {
-    this.initData(input, options)
-    this.addInputHandler()
-    if (input.value) {
-      this.formatOnly()
+    if (input.constructor !== String) {
+      this.initData(input, options)
+      this.addInputHandler()
+      if (input.value) {
+        this.formatOnly()
+      }
     }
   }
 
@@ -53,18 +59,8 @@ export default class InputFormatting {
     const input = this.input
     const separatorReg = this.options.separatorReg                      // 清除分隔符的正则
     const valueArray = input.value.replace(separatorReg, '').split('')  // 去除分隔符后的数字数组
-    this.separatorIndexArray.forEach((separatorObject) => {
-      if (valueArray.length <= separatorObject.index) {
-        return
-      }
-      // 添加 分隔符
-      if (separatorObject.index < valueArray.length) {
-        valueArray.splice(separatorObject.index, 0, separatorObject.value)
-      }
-    })
 
-    // 格式化后的值
-    this.formattedValue = valueArray.join('')
+    this.formattedValue = formatter(valueArray, this.separatorIndexArray)
 
     // 异步设值，解决 vuejs 里 v-model 绑定问题
     setTimeout(() => {
