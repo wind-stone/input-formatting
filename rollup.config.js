@@ -13,5 +13,6 @@ export default {
     }),
     uglify()
   ],
-  dest: 'dist/input-formatting.min.js'
+  dest: 'dist/input-formatting.min.js',
+  exports: 'named'
 };

@@ -13,9 +13,7 @@
   *           {Function} beforeFormat  格式化输入之前的钩子函数，接收 输入值（去除了分隔符）为参数，钩子函数返回
   *                                    true 则继续进行格式化，返回 false 则终止格式化
   */
-import { formatter } from './utils'
-
-export { formatter }
+export { formatter } from './utils'
 
 export default class InputFormatting {
   constructor(input, options) {
