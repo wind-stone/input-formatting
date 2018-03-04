@@ -4,6 +4,7 @@ import uglify from 'rollup-plugin-uglify'
 
 export default {
   entry: 'src/index.js',
+  dest: 'dist/input-formatting.min.js',
   moduleName: 'InputFormatting',
   format: 'umd',
   plugins: [
@@ -12,7 +13,5 @@ export default {
       exclude: 'node_modules/**' // only transpile our source code
     }),
     uglify()
-  ],
-  dest: 'dist/input-formatting.min.js',
-  exports: 'named'
-};
+  ]
+}
