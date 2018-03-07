@@ -78,7 +78,6 @@ class InputFormatting {
   _addInputHandler() {
     const input = this.$input
     const delimiters = this._options.delimiters
-    const beforeFormat = this._options.beforeFormat
     let isBadAndroid // 有兼容性的 Android
 
     this._inputHandler = () => {

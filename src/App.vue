@@ -86,7 +86,7 @@ export default {
     let inputDomValue = new InputFormatting({
       input: this.$refs.inputDomValue,
       format: '***-****-****',
-      delimiters: ['-'],
+      delimiters: ['-']
     })
     console.log(inputDomValue)
 
