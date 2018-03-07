@@ -1,15 +1,16 @@
-import { getValueArray, format, error } from './util'
+import { getValueArray, getDelimiterArray, format, error } from './util'
 
-export default class InputFormatting {
+class InputFormatting {
   /**
     * 格式化输入
     * @param { Object } options
-    *   { HTMLInputElement } input 输入框 dom 节点
-    *   { String } formatString    最终产生的格式，形如：'***-****-****'（手机号，- 连线分隔）
-    *   { Array } delimiters       分隔符数组，如 ['-', '.']
-    *   { String } initValue       初始要格式化的字符串，如 12345678910
-    *   { Function } beforeFormat  格式化输入之前的钩子函数，接收输入值（去除了分隔符）为参数，钩子函数返回
-    *                              true 则继续进行格式化，返回 false 则终止格式化
+    *   { String | HTMLInputElement } input 输入框 dom 节点
+    *   { String } format             最终产生的格式，形如：'***-****-****'（手机号，- 连线分隔）
+    *   { Array } delimiters          分隔符数组，如 ['-', '.']
+    *   { String } initialValue       初始要格式化的字符串，如 '12345678910'
+    *   { Function } beforeFormat     格式化输入之前的钩子函数，接收输入值（去除了分隔符）为参数，钩子函数返回
+    *                                 false 则终止格式化
+    *   { Function } afterFormat      格式化输入之后的钩子函数，接收格式化后的值（包含分隔符）为参数
     */
   constructor(options) {
     this._init(options)
@@ -25,9 +26,9 @@ export default class InputFormatting {
     }
     this._initData(input, options)
     this._addInputHandler()
-    const initValue = options.initValue || input.value
-    if (initValue) {
-      this._formatOnly(initValue)
+    const initialValue = options.initialValue || input.value
+    if (initialValue) {
+      this._formatOnly(initialValue)
     }
   }
 
@@ -36,20 +37,9 @@ export default class InputFormatting {
     this._options = options
     this._lastInputLength = 0 // 上次输入的长度，包含分隔符
     this._lastSelectionStart = 0 // 上次的光标位置
-    this._delimiterArray = []
+    this._delimiterArray = getDelimiterArray(options)
     this._inputHandler = null
-
-    input.setAttribute('maxLength', options.formatString.length)
-
-    const delimiters = options.delimiters
-    options.formatString.split('').forEach((delimiter, index) => {
-      if (delimiters.indexOf(delimiter) > -1) {
-        this._delimiterArray.push({
-          index,
-          value: delimiter
-        })
-      }
-    })
+    input.setAttribute('maxLength', options.format.length)
   }
 
   /**
@@ -57,15 +47,32 @@ export default class InputFormatting {
    */
   _formatOnly(value) {
     const input = this.$input
-    const valueArray = getValueArray(value, this._options.delimiters)
-
-    this.$value = format(valueArray, this._delimiterArray)
+    const options = this._options
+    value = format({
+      initialValue: value,
+      delimiters: options.delimiters,
+      format: options.format
+    })
 
     // 异步设值，解决 vuejs 里 v-model 绑定问题
     setTimeout(() => {
-      input.value = this.$value
-      this._lastInputLength = input.value.length
+      input.value = value
+      this._lastInputLength = value.length
+      this._callAfterFormat(value)
     })
+  }
+
+  _callBeforeFormat(value) {
+    const beforeFormat = this._options.beforeFormat
+    if (beforeFormat && typeof beforeFormat === 'function') {
+      return beforeFormat.call(this, value)
+    }
+    return true
+  }
+
+  _callAfterFormat(value) {
+    const afterFormat = this._options.afterFormat
+    afterFormat && typeof afterFormat === 'function' && afterFormat.call(this, value)
   }
 
   _addInputHandler() {
@@ -80,6 +87,7 @@ export default class InputFormatting {
       const valueArray = getValueArray(input.value, delimiters)
       const delimiterArray = this._delimiterArray
       let selectionStart = input.selectionStart // 输入后的光标位置
+      let value // 格式化之后的值
 
       /**
        * 判断是否是有兼容性问题的 Android，并将有兼容性问题的 Android 处理成正常情况
@@ -105,14 +113,9 @@ export default class InputFormatting {
         selectionStart++
       }
 
-      // 处理 beforeFormat 钩子函数
-      if (beforeFormat && typeof beforeFormat === 'function') {
-        const originValue = valueArray.join('')
-        const result = beforeFormat.call(this, originValue)
-        // beforeFormat 函数返回 false，直接返回
-        if (result === false) {
-          return
-        }
+      const originValue = valueArray.join('')
+      if (this._callBeforeFormat(originValue) === false) {
+        return
       }
 
       // 如果增加超过两位，可认为是复制，仅进行格式化操作，并将光标移动到最后
@@ -150,7 +153,7 @@ export default class InputFormatting {
         }
       })
 
-      input.value = this.$value = valueArray.join('')
+      value = input.value = valueArray.join('')
       this._lastInputLength = valueArray.length
 
       // 增加字符 && 在中间区域输入(非末尾输入)
@@ -164,8 +167,9 @@ export default class InputFormatting {
         })
       }
       this._lastSelectionStart = selectionStart
-      setTimeout(function () {
+      setTimeout(() => {
         input.setSelectionRange(selectionStart, selectionStart)
+        this._callAfterFormat(value)
       })
     }
     input.addEventListener('input', this._inputHandler, false)
@@ -175,20 +179,27 @@ export default class InputFormatting {
     this._inputHandler && this.$input.removeEventListener('input', this._inputHandler)
   }
 
-  $destroy() {
-    this._removeInputHandler()
-    this.$input.removeAttribute('maxLength')
-    this.$input.value = ''
-    this.$input = null
-    this.$value = ''
-    this._options = null
-    this._delimiterArray = null
-    this._inputHandler = null
+  $stop() {
+    if (this.$input) {
+      this._removeInputHandler()
+      this.$input.removeAttribute('maxLength')
+      this.$input.value = ''
+      this.$input = null
+      this._options = null
+      this._delimiterArray = null
+      this._inputHandler = null
+    }
   }
 
   $reset(options) {
-    this.$destroy()
+    this.$stop()
     options.input = options.input || this.$input
     this._init(options)
   }
+
+  static format(options) {
+    return format(options)
+  }
 }
+
+export default InputFormatting
