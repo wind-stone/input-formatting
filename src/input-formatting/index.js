@@ -1,6 +1,6 @@
-import { getValueArray, getDelimiterArray, format, error } from './util'
+import { getValueArray, getDelimiterArray, format, error } from './util.js'
 
-class InputFormatting {
+export default class InputFormatting {
   /**
     * 格式化输入
     * @param { Object } options
@@ -200,5 +200,3 @@ class InputFormatting {
     return format(options)
   }
 }
-
-export default InputFormatting

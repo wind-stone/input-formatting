@@ -3,7 +3,7 @@ import babel from 'rollup-plugin-babel'
 import uglify from 'rollup-plugin-uglify'
 
 export default {
-  entry: 'src/index.js',
+  entry: 'src/input-formatting/index.js',
   dest: 'dist/input-formatting.min.js',
   moduleName: 'InputFormatting',
   format: 'umd',

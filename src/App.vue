@@ -41,6 +41,7 @@
 
 <script>
 import InputFormatting from './input-formatting'
+
 export default {
   name: 'App',
   data() {
