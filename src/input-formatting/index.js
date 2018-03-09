@@ -118,8 +118,8 @@ export default class InputFormatting {
       }
 
       // 如果增加超过两位，可认为是复制，仅进行格式化操作，并将光标移动到最后
-      if (inputLength - this._lastInputLength > 1) {
-        this._formatOnly()
+      if (Math.abs(inputLength - this._lastInputLength) > 1) {
+        this._formatOnly(input.value)
         const maxlength = +input.getAttribute('maxlength')
         return setTimeout(() => {
           input.setSelectionRange(maxlength, maxlength)
