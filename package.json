@@ -1,13 +1,11 @@
 {
   "name": "input-formatting",
   "version": "2.0.0",
-  "description": "A Vue.js project",
+  "description": "移动端格式化输入，如将手机号格式化为'185-6666-8888'。最为关键的是，可将光标移动到任何位置进行删除、输入操作，用户体验好。",
   "author": "wind-stone<wind-stone@qq.com>",
-  "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
-    "lint": "eslint --ext .js,.vue src",
     "build": "rollup -c"
   },
   "main": "dist/input-formatting.min.js",
