@@ -3,12 +3,14 @@ import babel from 'rollup-plugin-babel'
 import uglify from 'rollup-plugin-uglify'
 
 export default {
-  entry: 'src/input-formatting/index.js',
-  dest: 'dist/input-formatting.min.js',
-  moduleName: 'InputFormatting',
-  format: 'umd',
+  input: 'src/input-formatting/index.js',
+  output: {
+    file: 'dist/input-formatting.min.js',
+    format: 'umd',
+    name: 'InputFormatting'
+  },
   plugins: [
-    resolve(),
+    resolve(), // rollup 不知道如何处理 node_modules 里的依赖，配置此项，可以解决此问题
     babel({
       exclude: 'node_modules/**' // only transpile our source code
     }),
