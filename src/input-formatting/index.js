@@ -67,7 +67,6 @@ export default class InputFormatting {
     if (beforeFormat && typeof beforeFormat === 'function') {
       return beforeFormat.call(this, value)
     }
-    return true
   }
 
   _callAfterFormat(value) {
@@ -81,9 +80,20 @@ export default class InputFormatting {
     let isBadAndroid // 有兼容性的 Android
 
     this._inputHandler = () => {
-      const inputLength = input.value.length
+      let modified = false // 是否通过 beforeFormat 对用户输入进行了修改
+      let inputValue = input.value
+      const inputLength = inputValue.length
+      const maxlength = +input.getAttribute('maxlength')
+      let valueArray = getValueArray(inputValue, delimiters)
+      const originValue = valueArray.join('')
+      const updatedValue = this._callBeforeFormat(originValue)
+      if (updatedValue !== undefined) {
+        inputValue = updatedValue
+        valueArray = getValueArray(inputValue, delimiters)
+        modified = true
+      }
+
       const isAdd = this._lastInputLength < inputLength // 是否是添加字符
-      const valueArray = getValueArray(input.value, delimiters)
       const delimiterArray = this._delimiterArray
       let selectionStart = input.selectionStart // 输入后的光标位置
       let value // 格式化之后的值
@@ -112,15 +122,9 @@ export default class InputFormatting {
         selectionStart++
       }
 
-      const originValue = valueArray.join('')
-      if (this._callBeforeFormat(originValue) === false) {
-        return
-      }
-
       // 如果增加超过两位，可认为是复制，仅进行格式化操作，并将光标移动到最后
       if (Math.abs(inputLength - this._lastInputLength) > 1) {
-        this._formatOnly(input.value)
-        const maxlength = +input.getAttribute('maxlength')
+        this._formatOnly(inputValue)
         return setTimeout(() => {
           input.setSelectionRange(maxlength, maxlength)
         })
@@ -156,7 +160,7 @@ export default class InputFormatting {
       this._lastInputLength = valueArray.length
 
       // 增加字符 && 在中间区域输入(非末尾输入)
-      if (isAdd && selectionStart < input.value.length) {
+      if (isAdd && selectionStart < value.length) {
         delimiterArray.some(delimiter => {
           if (delimiter.index === selectionStart) {
             // 如果光标在分隔符前一位，则将光标移到分隔符后面
@@ -167,7 +171,11 @@ export default class InputFormatting {
       }
       this._lastSelectionStart = selectionStart
       setTimeout(() => {
-        input.setSelectionRange(selectionStart, selectionStart)
+        if (modified) {
+          input.setSelectionRange(maxlength, maxlength)
+        } else {
+          input.setSelectionRange(selectionStart, selectionStart)
+        }
         this._callAfterFormat(value)
       })
     }
