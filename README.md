@@ -4,7 +4,7 @@
 
 ## 演示
 
-![演示 gif](https://github.com/wind-stone/input-formatting/blob/master/example/input-formatting.gif?raw=true)
+![演示 gif](./example/img/input-formatting.gif?raw=true)
 
 ## 安装
 
