@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "build:demo": "node build/build-demo.js"
   },
   "main": "dist/input-formatting.min.js",
   "module": "src/input-formatting/index.js",
