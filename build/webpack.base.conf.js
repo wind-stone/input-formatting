@@ -22,7 +22,7 @@ const createLintingRule = () => ({
 module.exports = {
   context: path.resolve(__dirname, '../'),
   entry: {
-    app: './src/main.js'
+    app: './example/main.js'
   },
   output: {
     path: config.build.assetsRoot,
@@ -35,7 +35,8 @@ module.exports = {
     extensions: ['.js', '.vue', '.json'],
     alias: {
       'vue$': 'vue/dist/vue.esm.js',
-      '@': resolve('src'),
+      'src': resolve('src'),
+      'components': resolve('example/components')
     }
   },
   module: {
@@ -50,6 +51,10 @@ module.exports = {
         test: /\.js$/,
         loader: 'babel-loader',
         include: [resolve('src'), resolve('test'), resolve('node_modules/webpack-dev-server/client')]
+      },
+      {
+        test: /\.md$/,
+        loader: 'vue-markdown-loader'
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
