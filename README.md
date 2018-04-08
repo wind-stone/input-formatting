@@ -4,7 +4,7 @@
 
 ## 演示
 
-![演示 gif](./example/img/input-formatting.gif?raw=true)
+![演示 gif](https://github.com/wind-stone/input-formatting/blob/master/example/img/input-formatting.gif?raw=true)
 
 ## 安装
 
@@ -44,14 +44,8 @@ const phoneInput = new InputFormatting({
   format: '***-****-****',
   delimiters: ['-'],
   beforeFormat: function (originValue) {
-    console.log('inputValue: ', originValue)
-    // 示例：输入的第一个字符不能为 0
-    if (originValue === '0') {
-      // 这里的 this 是指向 InputFormatting 的实例
-      this.input.value = ''
-
-      // 返回 false，将停止继续格式化输入
-      return false
+    if (originValue[0] === '0') {
+      return '1234'
     }
   }
   afterFormat: function (value) {
@@ -61,6 +55,8 @@ const phoneInput = new InputFormatting({
 ```
 
 ### 参数说明
+
+具体配置详情，请参考[使用说明](https://wind-stone.github.io/input-formatting)
 
 ```js
 new InputFormatting(options)
@@ -74,7 +70,7 @@ new InputFormatting(options)
 `format` | 是 | `String` | 最终要格式化成的形式，由分隔符和正常字符组成，如手机号的格式为：`***-****-****`（这里`-`代表分隔符，`*`代表正常输入的字符）
 `delimiters` | 是 | `Array` | 分隔符数组，如上述的手机号，这里的值为`['-']`
 `initialValue` | 否 | `String` | 初始时要格式化的值，如果该值为空，会使用输入框 dom 的 value 属性
-`beforeFormat` | 否 | `Function` | 格式化之前的钩子函数，在进行输入格式化之前调用。该函数接收一个参数 `originValue`，该参数是去除分隔符后的字符串。钩子函数的返回值决定是否继续进行格式化。如果返回`false`，停止格式化操作；否则，继续格式化输入。`beforeFormat`钩子里的`this`对象指向创建出来的`InputFormatting`的实例对象
+`beforeFormat` | 否 | `Function` | 格式化之前的钩子函数，在进行输入格式化之前调用。该函数接收一个参数 `originValue`，该参数是去除分隔符后的字符串。钩子函数如果有返回值，返回值将代替用户手动输入的值作为最新的输入值进行格式化（注意，如果是这种情况，输入光标会移到最后），`beforeFormat`钩子里的`this`对象指向创建出来的`InputFormatting`的实例对象
 `afterFormat` | 否 | `Function` | 格式化之后的钩子函数，在格式化之后调用。该函数接收一个参数`value`，该参数是格式化之后包含分隔符的字符串。
 
 
