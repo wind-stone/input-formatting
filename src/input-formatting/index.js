@@ -37,6 +37,7 @@ export default class InputFormatting {
     this._options = options
     this._lastInputLength = 0 // 上次输入的长度，包含分隔符
     this._lastSelectionStart = 0 // 上次的光标位置
+    this._isDelete = false // 判断是否为删除事件
     this._delimiterArray = getDelimiterArray(options)
     this._inputHandler = null
     input.setAttribute('maxLength', options.format.length)
@@ -144,7 +145,7 @@ export default class InputFormatting {
           }
         } else {
           // 删除字符，且删除的是分隔符，则将分隔符前的数字一并删除，光标位置前移一位，并且判断是否输入到最大位数，修复最大位数下输入变删除的错误
-          if (selectionStart === delimiter.index && valueArray.length < maxlength - 1) {
+          if (selectionStart === delimiter.index && this._isDelete) {
             valueArray.splice(delimiter.index - 1, 1)
             selectionStart--
           }
@@ -168,7 +169,7 @@ export default class InputFormatting {
             return true
           }
         })
-      } else if (selectionStart < value.length && value.length < maxlength) {
+      } else if (selectionStart < value.length) {
         delimiterArray.some(delimiter => {
           // 删除字符，且删除的是分隔符后一位，则将光标位置前移到分隔符前的数字
           if (selectionStart === delimiter.index + 1) {
@@ -188,6 +189,13 @@ export default class InputFormatting {
       })
     }
     input.addEventListener('input', this._inputHandler, false)
+    input.addEventListener('keydown', (e) => {
+      if (e.keyCode === 8) {
+        this._isDelete = true
+      } else {
+        this._isDelete = false
+      }
+    }, false)
   }
 
   _removeInputHandler() {
