@@ -143,18 +143,10 @@ export default class InputFormatting {
             selectionStart++
           }
         } else {
-          // 判断光标是否在字符串中间
-          if (valueArray.length > selectionStart) {
-            // 删除字符，且删除的是分隔符后一位，则将光标位置前移到分隔符前的数字
-            if (selectionStart === delimiter.index + 1) {
-              selectionStart--
-            }
-          } else {
-            // 删除字符，且删除的是分隔符，则将分隔符前的数字一并删除，光标位置前移一位
-            if (selectionStart === delimiter.index) {
-              valueArray.splice(delimiter.index - 1, 1)
-              selectionStart--
-            }
+          // 删除字符，且删除的是分隔符，则将分隔符前的数字一并删除，光标位置前移一位
+          if (selectionStart === delimiter.index) {
+            valueArray.splice(delimiter.index - 1, 1)
+            selectionStart--
           }
         }
 
@@ -173,6 +165,14 @@ export default class InputFormatting {
           if (delimiter.index === selectionStart) {
             // 如果光标在分隔符前一位，则将光标移到分隔符后面
             selectionStart++
+            return true
+          }
+        })
+      } else if (selectionStart < value.length) {
+        delimiterArray.some(delimiter => {
+          // 删除字符，且删除的是分隔符后一位，则将光标位置前移到分隔符前的数字
+          if (selectionStart === delimiter.index + 1) {
+            selectionStart--
             return true
           }
         })
