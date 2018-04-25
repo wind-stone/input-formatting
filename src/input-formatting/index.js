@@ -169,7 +169,7 @@ export default class InputFormatting {
             return true
           }
         })
-      } else if (selectionStart < value.length) {
+      } else if (selectionStart < value.length && this._isDelete) {
         delimiterArray.some(delimiter => {
           // 删除字符，且删除的是分隔符后一位，则将光标位置前移到分隔符前的数字
           if (selectionStart === delimiter.index + 1) {
