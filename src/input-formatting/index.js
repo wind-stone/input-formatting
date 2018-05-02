@@ -77,6 +77,7 @@ export default class InputFormatting {
   _addInputHandler() {
     const input = this.$input
     const delimiters = this._options.delimiters
+    const maxLength = +input.getAttribute('maxLength')
     let isBadAndroid // 有兼容性的 Android
 
     this._inputHandler = () => {
@@ -98,6 +99,10 @@ export default class InputFormatting {
       let selectionStart = input.selectionStart // 输入后的光标位置
       let value // 格式化之后的值
 
+      // fix #6
+      if (inputLength === maxLength && this._lastInputLength === maxLength) {
+        return
+      }
       /**
        * 判断是否是有兼容性问题的 Android，并将有兼容性问题的 Android 处理成正常情况
        *
