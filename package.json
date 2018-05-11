@@ -1,6 +1,6 @@
 {
   "name": "input-formatting",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "移动端格式化输入，如将手机号格式化为'185-6666-8888'。最为关键的是，可将光标移动到任何位置进行删除、输入操作，用户体验好。",
   "author": "wind-stone<wind-stone@qq.com>",
   "scripts": {
